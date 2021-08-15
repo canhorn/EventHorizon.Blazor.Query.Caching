@@ -1,0 +1,56 @@
+﻿@page "/fetchdata"
+@using EventHorizon.Blazor.Query.Caching.FetchData
+@inject MediatR.ISender Sender
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server, that is then cached on the client.</p>
+<p><button class="btn btn-primary" @onclick="HandleTrigggerRequest">Click here to make another request!</button></p>
+<p>Check out the Console in the Developer Tools for the status on the Cache Hit/Miss.</p>
+
+@if (!forecasts.Any())
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<WeatherForecast> forecasts = new List<WeatherForecast>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Sender.Send(
+            new QueryForForecastData()
+        );
+    }
+
+    protected async Task HandleTrigggerRequest()
+    {
+        forecasts = await Sender.Send(
+            new QueryForForecastData()
+        );
+    }
+}
